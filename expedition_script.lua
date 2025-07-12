@@ -66,8 +66,6 @@ if AutoExpeditionScript then
     AutoExpeditionScript()
 end
 
--- === UI FEATURES === --
-
 -- Speed Slider
 MainTab:CreateSlider({
     Name = "🏃‍♂️ Walk Speed",
@@ -141,4 +139,142 @@ MainTab:CreateToggle({
    end
 })
 
--- The rest of the original script (AutoFarm, FPS Booster, etc.) remains unchanged --
+-- Auto Farm
+MainTab:CreateToggle({
+    Name = "⚡ Auto Farm (Continuous)",
+    CurrentValue = false,
+    Flag = "AutoFarmToggle",
+    Callback = function(Value)
+        AutoFarmActive = Value
+        if Value then
+            Rayfield:Notify({ Title = "Auto Farm Started", Content = "Running continuous farming loop...", Duration = 3 })
+            task.spawn(function()
+                while AutoFarmActive do
+                    local player = game.Players.LocalPlayer
+                    local char = player.Character or player.CharacterAdded:Wait()
+                    repeat task.wait() until char:FindFirstChild("HumanoidRootPart") and char:FindFirstChildOfClass("Humanoid")
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.Health > 0 then
+                        local pos = CFrame.new(3733.94, 1508.68, -184.84)
+                        char.HumanoidRootPart.CFrame = pos
+                        task.wait(0.5)
+                        char.HumanoidRootPart.CFrame = pos * CFrame.new(-7, 0, 0)
+                        task.wait(1)
+                        char.HumanoidRootPart.CFrame = pos * CFrame.new(7, 0, 0)
+                        task.wait(1)
+                        char.HumanoidRootPart.CFrame = pos
+                        task.wait(1)
+                        hum:ChangeState(Enum.HumanoidStateType.Dead)
+                    end
+                    repeat task.wait() until player.Character and player.Character:FindFirstChildOfClass("Humanoid") and player.Character:FindFirstChildOfClass("Humanoid").Health > 0
+                end
+            end)
+        else
+            Rayfield:Notify({ Title = "Auto Farm Stopped", Content = "Farming has been disabled", Duration = 3 })
+        end
+    end
+})
+
+-- FPS Booster
+MiscTab:CreateButton({
+    Name = "🚀 FPS Booster",
+    Callback = function()
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Decal") or v:IsA("Smoke") or v:IsA("Fire") then
+                v:Destroy()
+            end
+        end
+        settings().Rendering.QualityLevel = 1
+        game:GetService("Lighting").GlobalShadows = false
+        Rayfield:Notify({ Title = "FPS Boost Applied", Content = "Graphics optimized for performance", Duration = 3 })
+    end
+})
+
+-- FOV Slider
+MiscTab:CreateSlider({
+    Name = "👁️ Field of View",
+    Range = {70, 120},
+    Increment = 1,
+    Suffix = "°",
+    CurrentValue = 70,
+    Flag = "FOVSlider",
+    Callback = function(Value)
+        workspace.CurrentCamera.FieldOfView = Value
+    end
+})
+
+-- NoClip
+local NoclipConnection = nil
+MiscTab:CreateToggle({
+    Name = "🚀 NoClip (Walk Through Walls)",
+    CurrentValue = false,
+    Flag = "NoClipToggle",
+    Callback = function(Value)
+        NoclipActive = Value
+        if NoclipConnection then
+            NoclipConnection:Disconnect()
+            NoclipConnection = nil
+        end
+        if Value then
+            NoclipConnection = game:GetService("RunService").Stepped:Connect(function()
+                if game.Players.LocalPlayer.Character then
+                    for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+            Rayfield:Notify({ Title = "NoClip Enabled", Content = "You can now walk through walls", Duration = 3 })
+        else
+            Rayfield:Notify({ Title = "NoClip Disabled", Content = "Collisions restored", Duration = 3 })
+        end
+    end
+})
+
+-- Fullbright / Remove Fog
+local OriginalFogStart = game.Lighting.FogStart
+local OriginalFogEnd = game.Lighting.FogEnd
+MiscTab:CreateToggle({
+    Name = "💡 Fullbright (Remove Darkness)",
+    CurrentValue = false,
+    Flag = "FullbrightToggle",
+    Callback = function(Value)
+        if Value then
+            game.Lighting.Ambient = Color3.new(1, 1, 1)
+            game.Lighting.FogEnd = 100000
+            Rayfield:Notify({ Title = "Fullbright Enabled", Content = "Darkness removed from the game", Duration = 3 })
+        else
+            game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+            game.Lighting.FogEnd = 10000
+            Rayfield:Notify({ Title = "Fullbright Disabled", Content = "Default lighting restored", Duration = 3 })
+        end
+    end
+})
+
+MiscTab:CreateToggle({
+    Name = "🌫️ Remove Fog",
+    CurrentValue = false,
+    Flag = "RemoveFogToggle",
+    Callback = function(Value)
+        FogRemoved = Value
+        if Value then
+            OriginalFogStart = game.Lighting.FogStart
+            OriginalFogEnd = game.Lighting.FogEnd
+            game.Lighting.FogStart = 0
+            game.Lighting.FogEnd = 100000
+            Rayfield:Notify({ Title = "Fog Removed", Content = "All fog has been cleared", Duration = 3 })
+        else
+            game.Lighting.FogStart = OriginalFogStart
+            game.Lighting.FogEnd = OriginalFogEnd
+            Rayfield:Notify({ Title = "Fog Restored", Content = "Default fog settings applied", Duration = 3 })
+        end
+    end
+})
+
+-- Initial notification
+Rayfield:Notify({
+   Title = "Script Loaded!",
+   Content = "Expedition Antarctica Script by KG3L",
+   Duration = 6.5
+})
