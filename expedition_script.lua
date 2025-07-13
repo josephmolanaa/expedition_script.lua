@@ -8,8 +8,8 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "Expedition Antarctica Script",
    Icon = 0,
-   LoadingTitle = "KAIDO HUB",
-   LoadingSubtitle = "by KG3L",
+   LoadingTitle = "Welcome",
+   LoadingSubtitle = "by Joseph",
    Theme = "Default",
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false,
@@ -139,42 +139,6 @@ MainTab:CreateToggle({
    end
 })
 
--- Auto Farm
-MainTab:CreateToggle({
-    Name = "⚡ Auto Farm (Continuous)",
-    CurrentValue = false,
-    Flag = "AutoFarmToggle",
-    Callback = function(Value)
-        AutoFarmActive = Value
-        if Value then
-            Rayfield:Notify({ Title = "Auto Farm Started", Content = "Running continuous farming loop...", Duration = 3 })
-            task.spawn(function()
-                while AutoFarmActive do
-                    local player = game.Players.LocalPlayer
-                    local char = player.Character or player.CharacterAdded:Wait()
-                    repeat task.wait() until char:FindFirstChild("HumanoidRootPart") and char:FindFirstChildOfClass("Humanoid")
-                    local hum = char:FindFirstChildOfClass("Humanoid")
-                    if hum and hum.Health > 0 then
-                        local pos = CFrame.new(3733.94, 1508.68, -184.84)
-                        char.HumanoidRootPart.CFrame = pos
-                        task.wait(0.5)
-                        char.HumanoidRootPart.CFrame = pos * CFrame.new(-7, 0, 0)
-                        task.wait(1)
-                        char.HumanoidRootPart.CFrame = pos * CFrame.new(7, 0, 0)
-                        task.wait(1)
-                        char.HumanoidRootPart.CFrame = pos
-                        task.wait(1)
-                        hum:ChangeState(Enum.HumanoidStateType.Dead)
-                    end
-                    repeat task.wait() until player.Character and player.Character:FindFirstChildOfClass("Humanoid") and player.Character:FindFirstChildOfClass("Humanoid").Health > 0
-                end
-            end)
-        else
-            Rayfield:Notify({ Title = "Auto Farm Stopped", Content = "Farming has been disabled", Duration = 3 })
-        end
-    end
-})
-
 -- FPS Booster
 MiscTab:CreateButton({
     Name = "🚀 FPS Booster",
@@ -275,6 +239,6 @@ MiscTab:CreateToggle({
 -- Initial notification
 Rayfield:Notify({
    Title = "Script Loaded!",
-   Content = "Expedition Antarctica Script by KG3L",
+   Content = "Expedition Antarctica Script by JosephStarling",
    Duration = 6.5
 })
