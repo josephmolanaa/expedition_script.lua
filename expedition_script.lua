@@ -41,7 +41,7 @@ local FogRemoved = false
 
 -- === TELEPORT BUTTONS TO CAMPS === --
 local Camps = {
-    ["Camp 1"] = CFrame.new(-3718.6, 227.4, 235.6),
+    ["Camp 1"] = CFrame.new( -(4236.6 -(114 + 404)), 227.4, 723.6 -(106 + 382) ),
     ["Camp 2"] = CFrame.new(1789.7, 107.8, -137),
     ["Camp 3"] = CFrame.new(5892.1, 323.4, -20.3),
     ["Camp 4"] = CFrame.new(8992.2, 598, 102.6),
