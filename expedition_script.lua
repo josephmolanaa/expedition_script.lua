@@ -32,20 +32,21 @@ local MiscTab = Window:CreateTab("🔧 Misc", nil)
 local Section = MainTab:CreateSection("Movement")
 local MiscSection = MiscTab:CreateSection("Utilities")
 
--- === CONFIGURABLE STATS === --
+-- CONFIGURABLE STATS 
 local CurrentSpeed = 16
 local CurrentJump = 50
 local AutoFarmActive = false
 local NoclipActive = false
 local FogRemoved = false
 
--- === TELEPORT BUTTONS TO CAMPS === --
+-- TELEPORT BUTTONS TO CAMPS
 local Camps = {
     ["Camp 1"] = CFrame.new( -(4236.6 -(114 + 404)), 227.4, 723.6 -(106 + 382) ),
     ["Camp 2"] = CFrame.new(1789.7, 107.8, -137),
+    ["MT. Vinson"] = CFrame.new(3733.94189, 1508.68774, -184.84581),
     ["Camp 3"] = CFrame.new(5892.1, 323.4, -20.3),
     ["Camp 4"] = CFrame.new(8992.2, 598, 102.6),
-    ["South Pole"] = CFrame.new(11001.9, 551.5, 103)
+    [" 5 South Pole"] = CFrame.new(11001.9, 551.5, 103)
 }
 
 for name, cframe in pairs(Camps) do
@@ -61,10 +62,191 @@ for name, cframe in pairs(Camps) do
 end
 
 -- === AUTO EXPEDITION CODE START (Oevani's logic goes here) === --
-local AutoExpeditionScript = loadstring(game:HttpGet("https://raw.githubusercontent.com/oevani/expedition-ant/main/autoexpedition.lua"))
-if AutoExpeditionScript then
-    AutoExpeditionScript()
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local LocalPlayer = Players.LocalPlayer
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Camps Positions
+local Camps = {
+    {Name = "Spawn", CFrame = CFrame.new(-9774.5, -156.6, -53.6)},
+    {Name = "Camp 1", CFrame = CFrame.new(-4754.6, 227.4, 235.6)},
+    {Name = "Camp 2", CFrame = CFrame.new(1789.7, 107.8, -137)},
+    {Name = "Camp 3", CFrame = CFrame.new(5892.1, 323.4, -20.3)},
+    {Name = "Camp 4", CFrame = CFrame.new(8992.2, 598, 102.6)},
+    {Name = "South Pole", CFrame = CFrame.new(11001.9, 551.5, 103.8)}
+}
+
+-- Config
+local currentCampIndex = 1
+local currentLoop = 0
+local maxLoops = 0
+local expeditionActive = false
+local autoJumpTask = nil
+local cameraFollowConnection = nil
+
+-- Helper Functions
+local function isNearCamp(position)
+    local campPos = Camps[1].CFrame.Position
+    return (position - campPos).Magnitude <= 100
 end
+
+local function isGrounded(humanoidRootPart)
+    local origin = humanoidRootPart.Position
+    local direction = Vector3.new(0, -4, 0)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    local result = workspace:Raycast(origin, direction, rayParams)
+    return result ~= nil
+end
+
+local function doJumpReset()
+    if expeditionActive then return end
+    local char = LocalPlayer.Character
+    if char then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if humanoid and humanoid.Health > 0 and root and isGrounded(root) and not isNearCamp(root.Position) then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end
+
+local function startAutoJump()
+    if autoJumpTask then return end
+    autoJumpTask = task.spawn(function()
+        while expeditionActive do
+            doJumpReset()
+            task.wait(2)
+        end
+    end)
+end
+
+local function stopAutoJump()
+    if autoJumpTask then
+        task.cancel(autoJumpTask)
+        autoJumpTask = nil
+    end
+end
+
+local function setCameraFollow()
+    if cameraFollowConnection then return end
+    cameraFollowConnection = RunService.RenderStepped:Connect(function()
+        local camera = workspace.CurrentCamera
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            camera.CameraType = Enum.CameraType.Scriptable
+            camera.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 5, -10) * CFrame.Angles(math.rad(-20), 0, 0)
+        end
+    end)
+end
+
+local function resetCamera()
+    if cameraFollowConnection then
+        cameraFollowConnection:Disconnect()
+        cameraFollowConnection = nil
+    end
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+end
+
+local function teleportToCamp(campIndex)
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local root = char:WaitForChild("HumanoidRootPart")
+
+    stopAutoJump()
+    task.wait(3)
+
+    root.Anchored = true
+    root.CFrame = Camps[campIndex].CFrame
+    task.wait(1)
+
+    root.Anchored = false
+    task.wait(1)
+
+    expeditionActive = false
+    if expeditionActive then
+        startAutoJump()
+    end
+end
+
+-- Main Expedition Logic
+RunService.RenderStepped:Connect(function()
+    if not expeditionActive then return end
+
+    for _, guiObj in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+        if guiObj:IsA("TextLabel") and guiObj.Visible and guiObj.Text:find("You have made it to") then
+            local campName = Camps[currentCampIndex].Name
+            if guiObj.Text:find(campName) then
+                currentCampIndex += 1
+                if campName ~= "South Pole" then
+                    Rayfield:Notify({Title = "Camp Reached", Content = campName .. " reached. Moving on...", Duration = 3})
+                    teleportToCamp(currentCampIndex)
+                else
+                    Rayfield:Notify({Title = "South Pole Reached", Content = "Handling next loop...", Duration = 3})
+                    currentLoop += 1
+                    if maxLoops > 0 and currentLoop >= maxLoops then
+                        Rayfield:Notify({Title = "Expedition Complete", Content = "You have completed " .. maxLoops .. " loops.", Duration = 5})
+                        expeditionActive = false
+                        stopAutoJump()
+                        resetCamera()
+                        return
+                    end
+                    teleportToCamp(1)
+                end
+            end
+            break
+        end
+    end
+end)
+
+-- UI Setup
+local Window = Rayfield:CreateWindow({
+    Name = "Auto Expedition By Oevani",
+    LoadingTitle = "Auto Expedition",
+    LoadingSubtitle = "by Oevani",
+    Theme = "Purple",
+    ConfigurationSaving = {Enabled = false},
+    KeySystem = false
+})
+
+local AutoTab = Window:CreateTab("Auto Expedition")
+
+AutoTab:CreateToggle({
+    Name = "Start Expedition",
+    CurrentValue = false,
+    Callback = function(state)
+        expeditionActive = state
+        if state then
+            currentCampIndex = 2
+            currentLoop = 0
+            Rayfield:Notify({Title = "Expedition Started", Content = "Starting at Camp 1", Duration = 5})
+            startAutoJump()
+            teleportToCamp(currentCampIndex)
+        else
+            stopAutoJump()
+            resetCamera()
+            Rayfield:Notify({Title = "Expedition Stopped", Content = "Expedition stopped by user.", Duration = 5})
+        end
+    end
+})
+
+AutoTab:CreateInput({
+    Name = "Loop Count (0 = infinite)",
+    PlaceholderText = "0",
+    Callback = function(value)
+        local num = tonumber(value)
+        if num and num >= 0 then
+            maxLoops = num
+        else
+            Rayfield:Notify({Title = "Warning", Content = "Loop count must be 0 or greater.", Duration = 5})
+        end
+    end
+})
 
 -- Speed Slider
 MainTab:CreateSlider({
