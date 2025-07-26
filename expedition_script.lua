@@ -19,7 +19,7 @@ local MainTab = Window:CreateTab("📍 Teleports")
 
 -- Camp Coordinates
 local Camps = {
-    ["Camp 1"] = CFrame.new(-4236.6 - (114 + 404), 227.4, 723.6 - (106 + 382)),
+    ["Camp 1"] = CFrame.new( -(4236.6 -(114 + 404)), 227.4, 723.6 -(106 + 382) ),
     ["Camp 2"] = CFrame.new(1789.7, 107.8, -137),
     ["MT. Vinson"] = CFrame.new(3733.94, 1508.68, -184.84),
     ["Camp 3"] = CFrame.new(5635.53, 341.25, 92.76),
