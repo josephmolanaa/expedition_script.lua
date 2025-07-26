@@ -9,7 +9,7 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Window = Rayfield:CreateWindow({
     Name = "Teleport Menu",
     LoadingTitle = "Teleport Utility",
-    LoadingSubtitle = "JOSEPH STARLING",
+    LoadingSubtitle = "For EA Camps",
     Theme = "Default",
     ConfigurationSaving = {Enabled = false},
     KeySystem = false
@@ -19,12 +19,12 @@ local MainTab = Window:CreateTab("📍 Teleports")
 
 -- Camp Coordinates
 local Camps = {
-    ["Camp 1"] = CFrame.new( -(4236.6 -(114 + 404)), 227.4, 723.6 -(106 + 382) ),
+    ["Camp 1"] = CFrame.new(-4236.6 - (114 + 404), 227.4, 723.6 - (106 + 382)),
     ["Camp 2"] = CFrame.new(1789.7, 107.8, -137),
-    ["3 MT. Vinson"] = CFrame.new(3733.94, 1508.68, -184.84),
-    ["Camp 3"] = CFrame.new(5892.1, 325.4, -20.3),
+    ["MT. Vinson"] = CFrame.new(3733.94, 1508.68, -184.84),
+    ["Camp 3"] = CFrame.new(5635.53, 341.25, 92.76),
     ["Camp 4"] = CFrame.new(8992.2, 598, 102.6),
-    ["5 South Pole"] = CFrame.new(11001.9, 551.5, 103.8)
+    ["South Pole"] = CFrame.new(11001.9, 551.5, 103.8)
 }
 
 -- Create Buttons
