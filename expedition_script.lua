@@ -1,40 +1,63 @@
--- Expedition Antarctica: Simple Teleport Buttons Only
--- By JosephStarling
+-- Combined Auto Expedition and UI Utility Script
+-- Expedition Auto Logic by Oevani + Utility Enhancements by KG3L
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- UI Setup
+-- Window Setup
 local Window = Rayfield:CreateWindow({
-    Name = "Teleport Menu",
-    LoadingTitle = "Teleport Utility",
-    LoadingSubtitle = "Joseph Starling",
-    Theme = "Default",
-    ConfigurationSaving = {Enabled = false},
-    KeySystem = false
+   Name = "Expedition Antarctica Script",
+   Icon = 0,
+   LoadingTitle = "Welcome",
+   LoadingSubtitle = "by Joseph",
+   Theme = "Default",
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "ExpeditionAntarcticaConfig",
+      FileName = "Settings"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+   KeySystem = false
 })
 
-local MainTab = Window:CreateTab("📍 Teleports")
+-- UI Tabs
+local MainTab = Window:CreateTab("🏔️ Main", nil)
+local MiscTab = Window:CreateTab("🔧 Misc", nil)
+local Section = MainTab:CreateSection("Movement")
+local MiscSection = MiscTab:CreateSection("Utilities")
 
--- Camp Coordinates
+-- === CONFIGURABLE STATS === --
+local CurrentSpeed = 16
+local CurrentJump = 50
+local AutoFarmActive = false
+local NoclipActive = false
+local FogRemoved = false
+
+-- === TELEPORT BUTTONS TO CAMPS === --
 local Camps = {
-    ["Camp 1"] = CFrame.new(-4754.6, 227.4, 235.6),
+    ["Camp 1"] = CFrame.new( -(4236.6 -(114 + 404)), 227.4, 723.6 -(106 + 382) ),
     ["Camp 2"] = CFrame.new(1789.7, 107.8, -137),
-    ["MT. Vinson"] = CFrame.new(3733.94, 1508.68, -184.84),
-    ["Camp 3"] = CFrame.new(5635.53, 341.25, 92.76),
+    ["Camp 2.5"] CFrame.new(5635.53, 341.25, 92.76),
+    ["Camp 3"] = CFrame.new(5892.1, 323.4, -20.3),
     ["Camp 4"] = CFrame.new(8992.2, 598, 102.6),
-    ["South Pole"] = CFrame.new(11001.9, 551.5, 103.8)
+    ["South Pole"] = CFrame.new(11001.9, 551.5, 103)
 }
 
--- Create Buttons
 for name, cframe in pairs(Camps) do
     MainTab:CreateButton({
         Name = "🚩 Teleport to " .. name,
         Callback = function()
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local root = char:WaitForChild("HumanoidRootPart")
-            root.CFrame = cframe
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = cframe
+            end
         end
     })
 end
+
